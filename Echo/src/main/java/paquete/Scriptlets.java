@@ -81,8 +81,8 @@ public class Scriptlets {
 			int contadorValoresSeleccionados = 0; // cu�ntos valores seleccionados ya se han recorrido
 			Iterator<String> iteradorConjuntoClaves = arrayValoresYEtiquetas.keySet().iterator();
 			while (iteradorConjuntoClaves.hasNext()) {
-				String clave = iteradorConjuntoClaves.next();
-				String valor = arrayValoresYEtiquetas.get(clave);
+				String clave = iteradorConjuntoClaves.next(); //respuesta
+				String valor = arrayValoresYEtiquetas.get(clave); //true or false
 				if ((contadorValoresSeleccionados < numerovaloresSeleccionados)
 						&& (valoresSeleccionados[contadorValoresSeleccionados].equals(clave))) {
 					salida += "<label>" + valor + "</label><input type=\"checkbox\" name=\"" + nombreControl

@@ -1,6 +1,7 @@
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -46,9 +47,18 @@ public class Recepcion extends HttpServlet {
 //		System.out.println(Credenciales.containsKey(user));
 //		System.out.println(Credenciales.containsValue(pass));
 //		System.out.println();
+		Cookie[] cookies = request.getCookies();
 
 		if (user != null && Credenciales.containsKey(user)) {
 			if (pass != null && pass.equals(Credenciales.get(user))) {
+				if (cookies != null) {
+				    for (Cookie cookie : cookies) {
+				        System.out.println("Cookie name: " + cookie.getName());
+				        System.out.println("Cookie value: " + cookie.getValue());
+				    }
+				} else {
+				    System.out.println("No cookies found.");
+				}
 				response.sendRedirect(request.getContextPath() + "/bienvenido.jsp");
 			} else {
 				response.sendRedirect(request.getContextPath() + "/index.jsp");
