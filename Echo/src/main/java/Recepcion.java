@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import paquete.Datos;
+import paquete.Scriptlets;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -52,14 +53,14 @@ public class Recepcion extends HttpServlet {
 		if (user != null && Credenciales.containsKey(user)) {
 			if (pass != null && pass.equals(Credenciales.get(user))) {
 				if (cookies != null) {
-				    for (Cookie cookie : cookies) {
-				        System.out.println("Cookie name: " + cookie.getName());
-				        System.out.println("Cookie value: " + cookie.getValue());
-				    }
-				} else {
-				    System.out.println("No cookies found.");
+					for (Cookie cookie : cookies) {
+						if (cookie.getName().equals(user)) {
+
+						} else {
+							response.sendRedirect(request.getContextPath() + "/bienvenido.jsp");
+						}
+					}
 				}
-				response.sendRedirect(request.getContextPath() + "/bienvenido.jsp");
 			} else {
 				response.sendRedirect(request.getContextPath() + "/index.jsp");
 			}
