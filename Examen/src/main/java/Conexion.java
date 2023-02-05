@@ -5,12 +5,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Conexion {
-	public static Connection Conectar() throws SQLException {
+	/**
+	 * @return Obj Connection
+	 */
+	public static Connection Conectar() throws SQLException, ClassNotFoundException {
 		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-		connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/examen", "root", "");
-
+		Class.forName("com.mysql.cj.jdbc.Driver");
+		connection = DriverManager.getConnection("jdbc:mysql://localhost/examen", "root", "");
 		return connection;
 	}
 }
