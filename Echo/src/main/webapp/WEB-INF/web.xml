@@ -49,4 +49,14 @@
     <servlet-name>Recepcion</servlet-name>
     <url-pattern>/Recepcion</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>GuardaCookie</display-name>
+    <servlet-name>GuardaCookie</servlet-name>
+    <servlet-class>GuardaCookie</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>GuardaCookie</servlet-name>
+    <url-pattern>/GuardaCookie</url-pattern>
+  </servlet-mapping>
 </web-app>

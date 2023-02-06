@@ -55,9 +55,9 @@ public class Recepcion extends HttpServlet {
 				if (cookies != null) {
 					for (Cookie cookie : cookies) {
 						if (cookie.getName().equals(user)) {
-
-						} else {
 							response.sendRedirect(request.getContextPath() + "/bienvenido.jsp");
+						} else {
+							
 						}
 					}
 				}

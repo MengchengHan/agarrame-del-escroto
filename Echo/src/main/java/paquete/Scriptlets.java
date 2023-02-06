@@ -19,7 +19,7 @@ public class Scriptlets {
 		while (iteradorConjuntoClaves.hasNext()) {
 			String clave = iteradorConjuntoClaves.next();
 			String valor = arrayValoresYEtiquetas.get(clave);
-			if (valorSeleccionado.equals(clave)) {
+			if (valorSeleccionado != null && valorSeleccionado.equals(clave)) {
 				salida += "<label>" + valor + "</label><input type=\"radio\" name=\"" + nombreControl + "\" value=\""
 						+ clave + "\" checked=\"checked\" />" + "\n";
 			} else {
