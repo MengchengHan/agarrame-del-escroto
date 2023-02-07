@@ -8,31 +8,27 @@ public class Genera {
 		return "<div id= " + id + ">" + "<big>" + texto + "</big>" + "</div>";
 	}
 
-	public static String checkboxes(String nombre, Map<String, String> claveValor, String[] valoresSeleccionados) {
+	public static String checkboxes(String nombre, Map<Integer, String> claveValor, Integer [] valoresSeleccionados) {
 		String salida = "";
-		int numerovaloresSeleccionados = valoresSeleccionados.length; // cuántos valores seleccionados se han recibido
-		if (numerovaloresSeleccionados > 0) { // hay algún valor seleccionado
+		if (valoresSeleccionados != null && valoresSeleccionados.length > 0) { // hay algún valor seleccionado
 			int contadorValoresSeleccionados = 0; // cu�ntos valores seleccionados ya se han recorrido
-			Iterator<String> iteradorConjuntoClaves = claveValor.keySet().iterator();
+			Iterator<Integer> iteradorConjuntoClaves = claveValor.keySet().iterator();
 			while (iteradorConjuntoClaves.hasNext()) {
-				String clave = iteradorConjuntoClaves.next(); // respuesta
+				Integer clave = iteradorConjuntoClaves.next(); // respuesta
 				String valor = claveValor.get(clave); // true or false
-				if ((contadorValoresSeleccionados < numerovaloresSeleccionados)
-						&& (valoresSeleccionados[contadorValoresSeleccionados].equals(clave))) {
-					salida += "<label>" + valor + "</label><input type=\"checkbox\" name=\"" + nombre
-							+ "\" value=\"" + clave + "\" checked=\"checked\" />" + "\n";
+				if (((contadorValoresSeleccionados < valoresSeleccionados.length) && (valoresSeleccionados[contadorValoresSeleccionados] == (clave)))) {
+					salida += "<input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" checked=\"checked\" />" + "<label>" + valor + "</label>" + "<br>";
 					contadorValoresSeleccionados++;
 				} else {
-					salida += "<label>" + valor + "</label><input type=\"checkbox\" name=\"" + nombre
-							+ "\" value=\"" + clave + "\" />" + "\n";
+					salida += "<input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" />" + "<label>" + valor + "</label>" + "<br>";
 				}
 			}
 		} else {
-			Iterator<String> iteradorConjuntoClaves = claveValor.keySet().iterator();
+			Iterator<Integer> iteradorConjuntoClaves = claveValor.keySet().iterator();
 			while (iteradorConjuntoClaves.hasNext()) {
-				String clave = iteradorConjuntoClaves.next();
+				Integer clave = iteradorConjuntoClaves.next();
 				String valor = claveValor.get(clave);
-				salida += "<label>" + valor + "</label><input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" />" + "\n";
+				salida += "<input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" />" + "<label>" + valor + "</label>" + "<br>";
 			}
 		}
 		return salida;

@@ -15,9 +15,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Random;
+import DataTypes.Respuesta;
 
 /**
  * Servlet implementation class Core
@@ -46,6 +49,16 @@ public class Core extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
+	Connection connection = null;
+	ResultSet rSet = null;
+	ArrayList<Integer> idPreguntas = getThreeRandom(); // Los ID de las tres preguntas
+	HashMap<Integer, String> preguntas = null; // Las tres preguntas (id -> pregunta)
+	HashMap<Integer, HashMap<String, Boolean>> opciones = null; // Las opciones (id -> (opciones -> correcta))
+	ArrayList<Respuesta> respuestas = null;
+	String sqlPreguntas = "SELECT id, pregunta FROM preguntas WHERE id in " + listToString(idPreguntas);
+	String sqlOpciones = "SELECT enunciado, correcta FROM opciones WHERE idPregunta = ";
+	String sqlRespuestas = "SELECT id, enunciado, correcta FROM opciones WHERE idPregunta = ";
+
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		/*
@@ -66,82 +79,60 @@ public class Core extends HttpServlet {
 		 * 
 		 */
 
-		Connection connection = null;
-		ResultSet rSet = null;
-		ArrayList<Integer> idPreguntas = getThreeRandom(); // Los ID de las tres preguntas
-		HashMap<Integer, String> preguntas = null; // Las tres preguntas (id -> pregunta)
-		HashMap<Integer, HashMap<String, Boolean>> opciones = null; // Las opciones (id -> (opciones -> correcta))
-		String sqlPreguntas = "SELECT id, pregunta FROM preguntas WHERE id in " + listToString(idPreguntas);
-		String sqlOpciones = "SELECT enunciado, correcta FROM opciones WHERE idPregunta = ";
 		try {
 			connection = Conexion.Conectar();
-			Statement stmt = connection.createStatement();
+//			Statement stmt = connection.createStatement();
 			HttpSession mySession = request.getSession(false);
-			
-			//Si la sesión no existe, se crea
-			if (mySession == null) {
-				mySession = request.getSession();
-				
-				// Obteniendo y guardando los id's y preguntas
-				preguntas = getQuestions(sqlPreguntas);
 
-				// Obteniendo y guardando las opciones, así como si son correctas o no
-				opciones = getOptions(sqlOpciones, idPreguntas);
-				
-				mySession.setAttribute("preguntas", preguntas);
-				mySession.setAttribute("opciones", opciones);
-				
-				if (request.getParameter("hidden") == null) {
-					linea("/pregunta1.jsp", request, response);
-				} else if (request.getParameter("hidden") != null && Integer.parseInt(request.getParameter("hidden")) == 1 ) {
-					linea("/pregunta2.jsp", request, response);
-				} else if (request.getParameter("hidden") != null && Integer.parseInt(request.getParameter("hidden")) == 2 ) {
-					if(request.getParameter("anterior").equals("Anterior")) {
-						linea("/pregunta1.jsp", request, response);						
-					} else if (request.getParameter("siguiente").equals("Siguiente")) {
-						linea("/pregunta3.jsp", request, response);										
-					}
-				} else if (request.getParameter("hidden") != null && Integer.parseInt(request.getParameter("hidden")) == 3 ) {
-					if(request.getParameter("anterior").equals("Anterior")) {
-						linea("/pregunta2.jsp", request, response);						
-					}
-				}
-			}
+			// Si la sesión no existe, se crea
+//			if (mySession == null) {
+//				mySession = request.getSession();
+//
+//				// Obteniendo y guardando los id's y preguntas
+			preguntas = getQuestions(sqlPreguntas);
 			
+			// Obteniendo y guardando las opciones, así como si son correctas o no
+			// opciones = getOptions(sqlOpciones, idPreguntas);
+
+//				mySession.setAttribute("preguntas", preguntas);
+//				mySession.setAttribute("opciones", opciones);
+
+//				request.setAttribute("preguntas", preguntas);
+//				request.setAttribute("opciones", opciones);
+
+//			if (request.getParameter("hidden") == null) {
+//				// Envío de la pregunta
+//				request.setAttribute("pregunta1", preguntas.get(idPreguntas.get(0)));
+//				// Envío de las respuestas asociadas con la pregunta
+//				request.setAttribute("respuestas1", getRespuestas(sqlRespuestas, idPreguntas.get(0)));
+//				// Opciones checked
+//				request.setAttribute("opciones1", request.getParameterValues("opciones1"));
+//				linea("/pregunta1.jsp", request, response);
+//			} else {
+			redirect(request, response);
+//			}
+//				} else if (request.getParameter("hidden") != null && Integer.parseInt(request.getParameter("hidden")) == 1 ) {
+//					request.setAttribute("pregunta2", preguntas.get(1));
+//					linea("/pregunta2.jsp", request, response);
+//				} else if (request.getParameter("hidden") != null && Integer.parseInt(request.getParameter("hidden")) == 2 ) {
+//					if(request.getParameter("anterior").equals("Anterior")) {
+//						request.setAttribute("pregunta1", preguntas.get(0));
+//						linea("/pregunta1.jsp", request, response);						
+//					} else if (request.getParameter("siguiente").equals("Siguiente")) {
+//						request.setAttribute("pregunta3", preguntas.get(2));
+//						linea("/pregunta3.jsp", request, response);										
+//					}
+//				} else if (request.getParameter("hidden") != null && Integer.parseInt(request.getParameter("hidden")) == 3 ) {
+//					if(request.getParameter("anterior").equals("Anterior")) {
+//						request.setAttribute("pregunta2", preguntas.get(1));
+//						linea("/pregunta2.jsp", request, response);						
+//					}
+//				}
+//			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-//		String pregunta = "";
-//		HashMap<String, Boolean> opciones = new HashMap<String, Boolean>(); // Las respuestas de la pregunta/s
-//		String consulta = "SELECT * FROM opciones WHERE pregunta_id = " + idPreguntas.get(0);
-//		try {
-//			connection = Conexion.Conectar();
-//			Statement stmt = connection.createStatement();
-//			String sql = "SELECT texto FROM preguntas WHERE id = " + idPreguntas.get(0);
-//			resultSet = stmt.executeQuery(sql);
-//			while (resultSet.next()) {
-//				pregunta = (resultSet.getString(1));
-//			}
-//
-//			resultSet = stmt.executeQuery(consulta);
-//			while (resultSet.next()) {
-//				opciones.put(resultSet.getString(3), resultSet.getBoolean(4));
-//			}
-//
-//			System.out.println(request.getParameter("hidden"));
-//			
-			
-//
-//		} catch (SQLException | ClassNotFoundException e) {
-//			e.printStackTrace();
-//		} finally {
-//			try {
-//				connection.close();
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//			}
-//		}
 	}
 
 	private int getRandom(int max) {
@@ -205,27 +196,104 @@ public class Core extends HttpServlet {
 		return preguntas;
 	}
 
-	private HashMap<Integer, HashMap<String, Boolean>> getOptions(String sql, ArrayList<Integer> idPreguntas)
-			throws SQLException, ClassNotFoundException {
-		// Obteniendo y guardando las opciones, así como si son correctas o no
-		HashMap<Integer, HashMap<String, Boolean>> opciones = new HashMap<Integer, HashMap<String, Boolean>>();
+//	private HashMap<Integer, HashMap<String, Boolean>> getOptions(String sql, ArrayList<Integer> idPreguntas)
+//			throws SQLException, ClassNotFoundException {
+//		// Obteniendo y guardando las opciones, así como si son correctas o no
+//		HashMap<Integer, HashMap<String, Boolean>> opciones = new HashMap<Integer, HashMap<String, Boolean>>();
+//		Connection connection = Conexion.Conectar();
+//		Statement stmt = connection.createStatement();
+//		int i = 0;
+//		while (idPreguntas.iterator().hasNext() && i < idPreguntas.size()) { // (6,2,10)
+//			int id = idPreguntas.get(i);
+//			ResultSet rSet = stmt.executeQuery(sql + id);
+//			HashMap<String, Boolean> aux = new HashMap<String, Boolean>();
+//			while (rSet.next()) {
+//				aux.put(rSet.getString(1), rSet.getBoolean(2));
+//			}
+//			opciones.put(id, aux);
+//			i++;
+//		}
+//		return opciones;
+//	}
+
+	private ArrayList<Respuesta> getRespuestas(String sql, int idPregunta) throws SQLException, ClassNotFoundException {
+		ArrayList<Respuesta> respuestas = new ArrayList<Respuesta>();
 		Connection connection = Conexion.Conectar();
 		Statement stmt = connection.createStatement();
-		int i = 0;
-		while (idPreguntas.iterator().hasNext() && i < idPreguntas.size()) { // (6,2,10)
-			int id = idPreguntas.get(i);
-			ResultSet rSet = stmt.executeQuery(sql + id);
-			HashMap<String, Boolean> aux = new HashMap<String, Boolean>();
-			while (rSet.next()) {
-				aux.put(rSet.getString(1), rSet.getBoolean(2));
-			}
-			opciones.put(id, aux);
-			i++;
+		ResultSet rSet = stmt.executeQuery(sql + idPregunta);
+		while (rSet.next()) {
+			Respuesta respuesta = new Respuesta(rSet.getInt(1), rSet.getString(2), rSet.getBoolean(3));
+			respuestas.add(respuesta);
 		}
-		return opciones;
+		return respuestas;
+
 	}
-	
-	private void linea (String jsp, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+	private void linea(String jsp, HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		getServletContext().getRequestDispatcher(jsp).forward(request, response);
+	}
+
+	private void redirect(HttpServletRequest request, HttpServletResponse response)
+			throws ClassNotFoundException, SQLException, ServletException, IOException {
+		/*
+		 * De primeras tenemos que el parámetro hidden es null, por lo que el usuario no
+		 * ha entrado a la primera pregunta Una vez que ha entrado y le da a enviar,
+		 * tenemos que recoger el valor del hidden, que siendo la primera pregunta será
+		 * de 1. Entonces tendremos que comprobar a parte de si el hidden es 1, también
+		 * si ha pulsado el botón siguiente.
+		 * 
+		 * 
+		 */
+
+		if (request.getParameter("hidden") == null) {
+			// Envío de la pregunta
+			request.setAttribute("pregunta1", preguntas.get(idPreguntas.get(0)));
+			// Envío de las respuestas asociadas con la pregunta
+			request.setAttribute("respuestas1", getRespuestas(sqlRespuestas, idPreguntas.get(0)));
+			// Opciones checked
+			request.setAttribute("opciones1", request.getParameterValues("opciones1"));
+			linea("/pregunta1.jsp", request, response);
+		} else if (request.getParameter("hidden") != null) {
+			if (Integer.parseInt(request.getParameter("hidden")) == 1) { // Si el hidden es 1
+				if (request.getParameter("siguiente") != null && request.getParameter("siguiente").equals("Siguiente")) { // Tira para pregunta 2
+					// Envío de la pregunta
+					request.setAttribute("pregunta2", preguntas.get(idPreguntas.get(1)));
+					// Envío de las respuestas asociadas con la pregunta
+					request.setAttribute("respuestas2", getRespuestas(sqlRespuestas, idPreguntas.get(1)));
+					// Opciones checked
+					request.setAttribute("opciones2", request.getParameterValues("opciones2"));
+					linea("/pregunta2.jsp", request, response);
+				}
+			} else if (Integer.parseInt(request.getParameter("hidden")) == 2) { // Si el hidden es 2
+				if (request.getParameter("anterior") != null && request.getParameter("anterior").equals("Anterior")) { // Tira para pregunta 1
+					// Envío de la pregunta
+					request.setAttribute("pregunta1", preguntas.get(idPreguntas.get(0)));
+					// Envío de las respuestas asociadas con la pregunta
+					request.setAttribute("respuestas1", getRespuestas(sqlRespuestas, idPreguntas.get(0)));
+					// Opciones checked
+					request.setAttribute("opciones1", request.getParameterValues("opciones1"));
+					linea("/pregunta1.jsp", request, response);
+				} else if (request.getParameter("siguiente") != null && request.getParameter("siguiente").equals("Siguiente")) { // Tira para pregunta 3
+					// Envío de la pregunta
+					request.setAttribute("pregunta3", preguntas.get(idPreguntas.get(2)));
+					// Envío de las respuestas asociadas con la pregunta
+					request.setAttribute("respuestas3", getRespuestas(sqlRespuestas, idPreguntas.get(2)));
+					// Opciones checked
+					request.setAttribute("opciones3", request.getParameterValues("opciones3"));
+					linea("/pregunta3.jsp", request, response);
+				}
+			} else if (Integer.parseInt(request.getParameter("hidden")) == 3) { // Si el hidden es 3
+				if (request.getParameter("anterior") != null && request.getParameter("anterior").equals("Anterior")) { // Tira para pregunta 2
+					// Envío de la pregunta
+					request.setAttribute("pregunta2", preguntas.get(idPreguntas.get(1)));
+					// Envío de las respuestas asociadas con la pregunta
+					request.setAttribute("respuestas2", getRespuestas(sqlRespuestas, idPreguntas.get(1)));
+					// Opciones checked
+					request.setAttribute("opciones2", request.getParameterValues("opciones2"));
+					linea("/pregunta2.jsp", request, response);
+				}
+			}
+		}
 	}
 }

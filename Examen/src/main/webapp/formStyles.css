@@ -9,8 +9,8 @@ body {
 #formulario {
     box-shadow: lightgray 0px 1px 10px 1px;
     border-radius: 10px;
-    width: 600px;
-    padding: 90px;
+    width: 800px;
+    padding: 100px;
 }
 
 h1 {
@@ -19,6 +19,7 @@ h1 {
 
 p{
     border: 1px solid lightgray;
+    border-radius: 3px;
     padding: 5px;
     display: flex;
     justify-content: center;
@@ -31,7 +32,7 @@ input[type="checkbox"] {
 }
 
 form label {
-    font-size: inherit;
+    font-size: 50;
 }
 
 form input[type="submit"] {
@@ -39,4 +40,9 @@ form input[type="submit"] {
     margin-top: 20px;
     height: 50px;
     border-radius: 6px;
+    border-color: gray;
+}
+
+form input[type="submit"]:hover, input[type="submit"]:active{
+	cursor: pointer;
 }
