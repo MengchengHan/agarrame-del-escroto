@@ -15,10 +15,6 @@
 <title>Insert title here</title>
 <link rel="stylesheet" type="text/css" href="formStyles.css">
 </head>
-<!-- 
-	Podría llevarme conmigo el HashMap a todos los jsp e ir sacando en cada uno la pregunta correspondiente
-	O podría enviar a cada jsp su pregunta correspondiente, evitando así tener que lidiar con los iterators 
- -->
 <%
 	String pregunta = (String) request.getAttribute("pregunta3");
 	ArrayList<Respuesta> respuestas = (ArrayList<Respuesta>) request.getAttribute("respuestas3"); 
@@ -31,13 +27,23 @@
 		mapaRespuestas.put(r.getId(), r.getEnunciado());
 	}
 	
-	Integer [] checkedValues = (Integer []) request.getAttribute("opciones3");
+	HttpSession mySession = request.getSession(false);
+	int [] checkedValues = null;
+	String [] strings = (String []) mySession.getAttribute("respondido3"); 
+	if(mySession != null) {
+		if (strings != null){		
+			checkedValues = new int [strings.length];
+			for(int i = 0; i < checkedValues.length; i++){
+				checkedValues[i] = Integer.parseInt(strings[i]);
+			}
+		}
+	}
 %>
 <body>
 	<main>
-		<h1>Pregunta 3</h1>
-		<p><%out.print(pregunta); %></p>
 		<div id="formulario">
+			<h1>Pregunta 3</h1>
+			<p><%out.print(pregunta); %></p>
 			<form action="Core" method="post">
 				<% out.print(Genera.checkboxes("opciones3", mapaRespuestas, checkedValues)); %>
 				<input type="hidden" name="hidden" value="3">
