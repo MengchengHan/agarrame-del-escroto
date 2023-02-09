@@ -38,19 +38,21 @@
 			}
 		}
 	}
+	
+	mySession.setAttribute("respuestas3", respuestas);
 %>
 <body>
-	<main>
-		<div id="formulario">
-			<h1>Pregunta 3</h1>
-			<p><%out.print(pregunta); %></p>
-			<form action="Core" method="post">
-				<% out.print(Genera.checkboxes("opciones3", mapaRespuestas, checkedValues)); %>
-				<input type="hidden" name="hidden" value="3">
+	<main id="container">
+		<h1>Pregunta 3</h1>
+		<p><%out.print(pregunta); %></p>
+		<form action="Core" method="post">
+			<% out.print(Genera.checkboxes("opciones3", mapaRespuestas, checkedValues)); %>
+			<input type="hidden" name="hidden" value="3">
+			<div id='submits'>
 				<input type="submit" name="anterior" value="Anterior">	
 				<input type="submit" name="terminar" value="Terminar">
-			</form>
-		</div>	
+			</div>
+		</form>
 	</main>
 </body>
 </html>
