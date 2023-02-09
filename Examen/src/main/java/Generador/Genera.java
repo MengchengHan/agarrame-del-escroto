@@ -14,10 +14,10 @@ public class Genera {
 				int clave = it.next();
 				String valor = claveValor.get(clave); 
 				if (((count < checked.length) && (checked[count] == clave))) {
-					salida += "<div><input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" checked=\"checked\" />" + "<label>" + valor + "</label></div>" + "<br>" ;
+					salida += "<div class='inputsLabels'><input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" checked=\"checked\" />" + "<label>" + valor + "</label></div>" + "<br>" ;
 					count++;
 				} else {
-					salida += "<div><input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" />" + "<label>" + valor + "</label></div>" + "<br>";
+					salida += "<div class='inputsLabels'><input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" />" + "<label>" + valor + "</label></div>" + "<br>";
 				}
 			}
 		} else {
@@ -25,7 +25,7 @@ public class Genera {
 			while (iteradorConjuntoClaves.hasNext()) {
 				int clave = iteradorConjuntoClaves.next();
 				String valor = claveValor.get(clave);
-				salida += "<div><input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" />" + "<label>" + valor + "</label></div>" + "<br>";
+				salida += "<div class='inputsLabels'><input type=\"checkbox\" name=\"" + nombre + "\" value=\"" + clave + "\" />" + "<label>" + valor + "</label></div>" + "<br>";
 			}
 		}
 		return salida;

@@ -1,7 +1,4 @@
-
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,10 +12,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import DataTypes.Respuesta;
 
@@ -42,23 +42,26 @@ public class Core extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		doPost(request, response);
+		doPost(request, response); //xd
 	}
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
-	Connection connection = null;
+	private Connection connection = null;
 	ResultSet rSet = null;
 	ArrayList<Integer> idPreguntas = getThreeRandom(); // Los ID de las tres preguntas
 	HashMap<Integer, String> preguntas = null; // Las tres preguntas (id -> pregunta)
 	HashMap<Integer, HashMap<String, Boolean>> opciones = null; // Las opciones (id -> (opciones -> correcta))
 	ArrayList<Respuesta> respuestas = null;
 	String sqlPreguntas = "SELECT id, pregunta FROM preguntas WHERE id in " + listToString(idPreguntas);
-	String sqlOpciones = "SELECT enunciado, correcta FROM opciones WHERE idPregunta = ";
 	String sqlRespuestas = "SELECT id, enunciado, correcta FROM opciones WHERE idPregunta = ";
-
+	String errMsg = "Elige al menos una opción para poder continuar.";
+	ArrayList<Integer> mal = new ArrayList<>();
+	ArrayList<Integer> bien = new ArrayList<>();
+	double notaFinal, notaP1, notaP2, notaP3;
+	final double notaMax = 10;
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		HttpSession mySession = request.getSession();
@@ -80,7 +83,8 @@ public class Core extends HttpServlet {
 		 * 
 		 * ArrayList respuestasCorrectas 
 		 * HashMap respuestasCorrectas => clave -> valor, 
-		 * Para el envío de respuestas, habrá que recogerlas en un 
+		 * Para el envío de respuestas marccadas se hará a través de una sesión para luego 
+		 * recuperarlas en el jsp.
 		 * 
 		 */
 
@@ -173,48 +177,70 @@ public class Core extends HttpServlet {
 		getServletContext().getRequestDispatcher(jsp).forward(request, response);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void redirect(HttpServletRequest request, HttpServletResponse response, HttpSession mySession)
 			throws ClassNotFoundException, SQLException, ServletException, IOException {
 		/*
-		 * De primeras tenemos que el parámetro hidden es null, por lo que el usuario no
-		 * ha entrado a la primera pregunta Una vez que ha entrado y le da a enviar,
-		 * tenemos que recoger el valor del hidden, que siendo la primera pregunta será
-		 * de 1. Entonces tendremos que comprobar a parte de si el hidden es 1, también
-		 * si ha pulsado el botón siguiente.
-		 * 
+		 * Comprobar si el resultado marcado es correcto o no, para sumar o restar de la puntuación. 
 		 * 
 		 */
-
+		
 		ArrayList<Respuesta> respuestas;
 		if (request.getParameter("hidden") == null) {
 			respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(0));
-			setAttribute(request, 1, respuestas);
+			dasAuto(request, 1, respuestas);
 			linea("/pregunta1.jsp", request, response);
 		} else if (request.getParameter("hidden") != null) {
 			if (Integer.parseInt(request.getParameter("hidden")) == 1) { // Si el hidden es 1
 				if (request.getParameter("siguiente") != null && request.getParameter("siguiente").equals("Siguiente")) { // Tira para pregunta 2
+					String [] respondido1 = (String []) request.getParameterValues("opciones" + request.getParameter("hidden"));
+					notaP1 = simplyClever((ArrayList<Respuesta>) mySession.getAttribute("respuestas1"), respondido1);
+					mySession.setAttribute("respondido1", respondido1);
 					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(1));
-					setAttribute(request, 2, respuestas);
-					mySession.setAttribute("respondido1", request.getParameterValues("opciones" + request.getParameter("hidden")));
+					if(respondido1 == null) {				
+						respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(0));
+						request.setAttribute("errMsg", errMsg);
+						dasAuto(request, 1, respuestas);
+						linea("/pregunta1.jsp", request, response);						
+					} 
+					dasAuto(request, 2, respuestas);
 					linea("/pregunta2.jsp", request, response);
 				}
 			} else if (Integer.parseInt(request.getParameter("hidden")) == 2) { // Si el hidden es 2
 				if (request.getParameter("anterior") != null && request.getParameter("anterior").equals("Anterior")) { // Tira para pregunta 1
 					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(0));					
-					setAttribute(request, 1, respuestas);
+					dasAuto(request, 1, respuestas);
 					linea("/pregunta1.jsp", request, response);
 				} else if (request.getParameter("siguiente") != null && request.getParameter("siguiente").equals("Siguiente")) { // Tira para pregunta 3
-					mySession.setAttribute("respondido2", request.getParameterValues("opciones" + request.getParameter("hidden")));
-					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(2));					
-					setAttribute(request, 3, respuestas);
+					String [] respondido2 = (String []) request.getParameterValues("opciones" + request.getParameter("hidden"));
+					notaP2 = simplyClever((ArrayList<Respuesta>) mySession.getAttribute("respuestas2"), respondido2);
+					mySession.setAttribute("respondido2", respondido2);
+					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(2));		
+					if(respondido2 == null) {				
+						respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(1));
+						request.setAttribute("errMsg", errMsg);
+						dasAuto(request, 2, respuestas);
+						linea("/pregunta2.jsp", request, response);						
+					} 
+					dasAuto(request, 3, respuestas);
 					linea("/pregunta3.jsp", request, response);
 				}
 			} else if (Integer.parseInt(request.getParameter("hidden")) == 3) { // Si el hidden es 3
 				if (request.getParameter("anterior") != null && request.getParameter("anterior").equals("Anterior")) { // Tira para pregunta 2
 					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(1));					
-					setAttribute(request, 2, respuestas);
+					dasAuto(request, 2, respuestas);
 					linea("/pregunta2.jsp", request, response);
-				} else if (request.getParameter("terminar") != null && request.getParameter("terminar").equals("Terminar")) {
+				} else if (request.getParameter("terminar") != null && request.getParameter("terminar").equals("Terminar")) { // Termina
+					String [] respondido3 = (String []) request.getParameterValues("opciones" + request.getParameter("hidden"));
+					notaP3 = simplyClever((ArrayList<Respuesta>) mySession.getAttribute("respuestas3"), respondido3);
+					if(respondido3 == null) {				
+						respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(2));
+						request.setAttribute("errMsg", errMsg);
+						dasAuto(request, 3, respuestas);
+						linea("/pregunta3.jsp", request, response);						
+					} 
+					notaFinal = notaP1 + notaP2 + notaP3;
+					mySession.setAttribute("notaExamen", notaFinal);
 					linea("/resultados.jsp", request, response);
 				}
 				mySession.setAttribute("respondido3", request.getParameterValues("opciones" + request.getParameter("hidden")));
@@ -222,11 +248,104 @@ public class Core extends HttpServlet {
 		}
 	}
 	
-	private void setAttribute(HttpServletRequest request, int nPregunta, ArrayList<Respuesta> respuestas) {
+	private void dasAuto(HttpServletRequest request, int nPregunta, ArrayList<Respuesta> respuestas) {
 		// Envío de la pregunta
 		request.setAttribute("pregunta" + nPregunta, preguntas.get(idPreguntas.get(nPregunta-1)));
 		// Envío de las respuestas asociadas con la pregunta
 		request.setAttribute("respuestas" + nPregunta, respuestas);
 		return;
 	}
+	
+	/*
+	 * Pongamos que la nota de la pregunta es notaFinal/número de preguntas
+	 * Aplicándolo a nuestro ejercicio: 
+	 * Sea notaFinal = 10
+	 * Sea número de preguntas = 3
+	 * 
+	 * double notaPregunta; 
+	 * 
+	 * Resta la probabilidad de acertar una
+	 * 
+	 * Si una pregunta tiene 3 opciones válidas, la probablidad de acertar una, es de 1/3. 
+	 * Eso quiere decir que resta notaPregunta/3	
+	 * 
+	 * Si tiene 2 opciones válidas, la probabilidad es de 1/2 
+	 * Eso quiere decir que resta notaPregunta/2
+	 *
+	 * El número de opciones válidas consultaremos el mapa de k -> v y obtendremos el valor 
+	 */
+	
+	private ArrayList<Integer> arrayToArrayList(String [] strArr) {
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		
+		for(String str : strArr) {
+			list.add(Integer.parseInt(str));
+		}
+		
+		return list;
+	}
+	
+	private double simplyClever(ArrayList<Respuesta> respuestas, String [] checked) {
+		if(respuestas != null) {
+			
+			double puntuacion = notaMax/idPreguntas.size();
+			int nOpcionesValidas = 0;
+			// double p = notaPregunta/nOpcionesValidas;
+			
+			ArrayList<Integer> checkedValues = arrayToArrayList(checked);
+				
+			ArrayList<Integer> bien = new ArrayList<Integer>();
+				
+				HashMap<Integer, Boolean> x = new HashMap<Integer, Boolean>();
+				for(Respuesta resp : respuestas) {
+					x.put(resp.getId(), resp.isValida());
+					
+					if(resp.isValida()) {
+						nOpcionesValidas++;
+					}
+				}
+				
+			if(bien.size() != 0) {
+				for(int i : checkedValues) { // i es el valor del elemento 
+					if(x.get(i)) {
+						bien.add(i);
+					}
+				}
+	
+				Iterator<Entry<Integer, Boolean>> it = x.entrySet().iterator();;
+				
+				while (it.hasNext()) {
+					 Map.Entry<Integer, Boolean> new_Map = (Map.Entry<Integer, Boolean>) it.next();
+					 if(new_Map.getValue()) {
+						 checkedValues.remove(Integer.valueOf(new_Map.getKey())); 					 
+					 }
+				}
+				
+				//puntuacion += bien.size()*notaOpcion;
+				if (checkedValues.size() != 0) {
+					puntuacion -= (puntuacion/nOpcionesValidas);
+				}
+				
+			} else {
+					puntuacion -= (puntuacion/nOpcionesValidas);					
+				}
+			return puntuacion;
+		}
+		return 0;
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
