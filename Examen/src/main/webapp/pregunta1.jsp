@@ -16,8 +16,10 @@
 <link rel="stylesheet" type="text/css" href="formStyles.css">
 </head>
 <%
-	String pregunta = (String) request.getAttribute("pregunta1");
-	ArrayList<Respuesta> respuestas = (ArrayList<Respuesta>) request.getAttribute("respuestas1"); 
+	HttpSession mySession = request.getSession(false);
+	String pregunta = (String) request.getAttribute("pregunta1"); // Enunciado pregunta
+	ArrayList<Respuesta> respuestas = (ArrayList<Respuesta>) request.getAttribute("respuestas1"); // Respuestas
+	mySession.setAttribute("respuestas1", respuestas);
 	
 	Map<Integer, String> mapaRespuestas = new HashMap<Integer, String>();
 	
@@ -27,7 +29,6 @@
 		mapaRespuestas.put(r.getId(), r.getEnunciado());
 	}
 	
-	HttpSession mySession = request.getSession(false);
 	int [] checkedValues = null;
 	String [] strings = (String []) mySession.getAttribute("respondido1"); 
 	if(mySession != null) {
@@ -39,7 +40,6 @@
 		}
 	}
 	
-	mySession.setAttribute("respuestas1", respuestas);
 %>
 <body>
 	<main id='container'>
