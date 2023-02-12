@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,7 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
-
+import java.util.Base64;
 import DataTypes.Respuesta;
 
 /**
@@ -60,6 +61,7 @@ public class Core extends HttpServlet {
 	private String errMsg = "Elige al menos una opción para poder continuar.";
 	private double notaFinal, notaP1, notaP2, notaP3;
 	private final double notaMax = 10;
+	private ArrayList<String> respondidoGeneral = new ArrayList<String>();
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -127,6 +129,13 @@ public class Core extends HttpServlet {
 			return nRows;
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return nRows;
 	}
@@ -153,6 +162,8 @@ public class Core extends HttpServlet {
 		while (rSet.next()) {
 			preguntas.put(rSet.getInt(1), rSet.getString(2));
 		}
+		stmt.close();
+		connection.close();
 		return preguntas;
 	}
 
@@ -165,6 +176,8 @@ public class Core extends HttpServlet {
 			Respuesta respuesta = new Respuesta(rSet.getInt(1), rSet.getString(2), rSet.getBoolean(3));
 			respuestas.add(respuesta);
 		}
+		stmt.close();
+		connection.close();
 		return respuestas;
 
 	}
@@ -186,7 +199,7 @@ public class Core extends HttpServlet {
 		ArrayList<Respuesta> respuestas;
 		if (request.getParameter("hidden") == null) {
 			respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(0));
-			dasAuto(request, 1, respuestas);
+			sendAttributes(request, 1, respuestas);
 			linea("/pregunta1.jsp", request, response);
 		} else if (request.getParameter("hidden") != null) {
 			if (Integer.parseInt(request.getParameter("hidden")) == 1) { // Si el hidden es 1
@@ -195,16 +208,17 @@ public class Core extends HttpServlet {
 						&& request.getParameter("siguiente").equals("Siguiente")) { // Tira para pregunta 2
 					String[] respondido1 = (String[]) request
 							.getParameterValues("opciones" + request.getParameter("hidden"));
-					notaP1 = simplyClever((ArrayList<Respuesta>) mySession.getAttribute("respuestas1"), respondido1);
+					notaP1 = calcNota((ArrayList<Respuesta>) mySession.getAttribute("respuestas1"), respondido1);
 					mySession.setAttribute("respondido1", respondido1);
 					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(1));
 					if (respondido1 == null) {
 						respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(0));
 						request.setAttribute("errMsg", errMsg);
-						dasAuto(request, 1, respuestas);
+						sendAttributes(request, 1, respuestas);
 						linea("/pregunta1.jsp", request, response);
 					}
-					dasAuto(request, 2, respuestas);
+					respondidoGeneral.addAll(Arrays.asList(respondido1));
+					sendAttributes(request, 2, respuestas);
 					linea("/pregunta2.jsp", request, response);
 				}
 			} else if (Integer.parseInt(request.getParameter("hidden")) == 2) { // Si el hidden es 2
@@ -214,22 +228,23 @@ public class Core extends HttpServlet {
 																														// pregunta
 																														// 1
 					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(0));
-					dasAuto(request, 1, respuestas);
+					sendAttributes(request, 1, respuestas);
 					linea("/pregunta1.jsp", request, response);
 				} else if (request.getParameter("siguiente") != null
 						&& request.getParameter("siguiente").equals("Siguiente")) { // Tira para pregunta 3
-					String[] respondido2 = (String[]) request
+					String [] respondido2 = (String[]) request
 							.getParameterValues("opciones" + request.getParameter("hidden"));
-					notaP2 = simplyClever((ArrayList<Respuesta>) mySession.getAttribute("respuestas2"), respondido2);
+					notaP2 = calcNota((ArrayList<Respuesta>) mySession.getAttribute("respuestas2"), respondido2);
 					mySession.setAttribute("respondido2", respondido2);
 					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(2));
 					if (respondido2 == null) {
 						respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(1));
 						request.setAttribute("errMsg", errMsg);
-						dasAuto(request, 2, respuestas);
+						sendAttributes(request, 2, respuestas);
 						linea("/pregunta2.jsp", request, response);
 					}
-					dasAuto(request, 3, respuestas);
+					respondidoGeneral.addAll(Arrays.asList(respondido2));
+					sendAttributes(request, 3, respuestas);
 					linea("/pregunta3.jsp", request, response);
 				}
 			} else if (Integer.parseInt(request.getParameter("hidden")) == 3) { // Si el hidden es 3
@@ -239,28 +254,33 @@ public class Core extends HttpServlet {
 																														// pregunta
 																														// 2
 					respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(1));
-					dasAuto(request, 2, respuestas);
+					sendAttributes(request, 2, respuestas);
 					linea("/pregunta2.jsp", request, response);
 				} else if (request.getParameter("terminar") != null
 						&& request.getParameter("terminar").equals("Terminar")) { // Termina
-					String[] respondido3 = (String[]) request.getParameterValues("opciones" + request.getParameter("hidden"));
-					notaP3 = simplyClever((ArrayList<Respuesta>) mySession.getAttribute("respuestas3"), respondido3);
+					String [] respondido3 = (String[]) request.getParameterValues("opciones" + request.getParameter("hidden"));
+					notaP3 = calcNota((ArrayList<Respuesta>) mySession.getAttribute("respuestas3"), respondido3);
 					mySession.setAttribute("respondido3", respondido3);
 					if (respondido3 == null) {
 						respuestas = getRespuestas(sqlRespuestas, idPreguntas.get(2));
 						request.setAttribute("errMsg", errMsg);
-						dasAuto(request, 3, respuestas);
+						sendAttributes(request, 3, respuestas);
 						linea("/pregunta3.jsp", request, response);
 					}
+					respondidoGeneral.addAll(Arrays.asList(respondido3));
 					notaFinal = notaP1 + notaP2 + notaP3;
 					mySession.setAttribute("notaExamen", notaFinal);
+					
+					String hash = insertDB(respondidoGeneral);
+					System.out.println(hash);
+					mySession.setAttribute("idExamen", hash);
 					linea("/resultados.jsp", request, response);
 				}
-			}
+			}	
 		}
 	}
 
-	private void dasAuto(HttpServletRequest request, int nPregunta, ArrayList<Respuesta> respuestas) {
+	private void sendAttributes(HttpServletRequest request, int nPregunta, ArrayList<Respuesta> respuestas) {
 		String pregunta = preguntas.get(idPreguntas.get(nPregunta - 1));
 		// Envío de la pregunta
 		request.setAttribute("pregunta" + nPregunta, pregunta);
@@ -288,7 +308,7 @@ public class Core extends HttpServlet {
 	 * el valor
 	 */
 
-	private ArrayList<Integer> arrayToArrayList(String[] strArr) {
+	private ArrayList<Integer> arrayToArrayListInt(String[] strArr) {
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		if (strArr != null) {
 			for (String str : strArr) {
@@ -297,8 +317,17 @@ public class Core extends HttpServlet {
 		}
 		return list;
 	}
+	
+	private String arrayListToString (ArrayList<String> list) {
+		String out = "";
+		
+		for(String str : list){
+			out += str;
+		}
+		return out;
+	}
 
-	private double simplyClever(ArrayList<Respuesta> respuestas, String[] checked) {
+	private double calcNota(ArrayList<Respuesta> respuestas, String[] checked) {
 		if (respuestas != null) {
 
 			double puntuacion = notaMax / idPreguntas.size();
@@ -326,7 +355,7 @@ public class Core extends HttpServlet {
 			}
 
 			HashSet<Integer> set1 = new HashSet<>(bien); // Lista 1
-			HashSet<Integer> set2 = new HashSet<>(arrayToArrayList(checked)); // Lista 2
+			HashSet<Integer> set2 = new HashSet<>(arrayToArrayListInt(checked)); // Lista 2
 
 			if (set1.equals(set2)) {
 				return puntuacion;
@@ -340,5 +369,21 @@ public class Core extends HttpServlet {
 			}
 		}
 		return 0;
+	}
+	
+	private String insertDB (ArrayList<String> respondido) throws SQLException, ClassNotFoundException{
+		
+		String hash = Base64.getEncoder().encodeToString(Generador.Argon2Id.generateArgon2Id()) + 
+				new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date());;
+		
+		String insertSQL = "INSERT INTO examen VALUES (" + "'" + hash + "'" + ", " + "'" + idPreguntas + "'" + ", " + "'" +  respondido + "'" + ");";
+		
+		System.out.println(insertSQL);
+		
+		Connection connection = Conexion.Conectar();
+		Statement stmt = connection.createStatement();
+		
+		stmt.execute(insertSQL);
+		return hash;
 	}
 }

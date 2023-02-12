@@ -35,34 +35,6 @@ public class Genera {
 		}
 		return salida;
 	}
-	
-//	public static String cajaRespuestas (String pregunta, ArrayList<Respuesta> respuestas, String [] respondidas){
-//		String out = "";
-//		if(respondidas != null) {
-//			ArrayList<Integer> respondidasLista = new ArrayList<Integer>();
-//			for(String str : respondidas) {
-//				respondidasLista.add(Integer.parseInt(str));
-//			}
-//			
-//			for (Respuesta respuesta : respuestas) { 
-//				String clase = respuesta.isValida() ? "valida" : "noValida";
-//				boolean procesada = false;
-//				for(int i : respondidasLista) {
-//					if(respuesta.getId() == i) { // Si se encuentra entre las marcadas 
-//						out += "<p class=" + clase + ">" + respuesta.getEnunciado() + "</p>" + "\n";
-//						procesada = true;
-//						break;
-//					} 
-//				}
-//				if (!procesada) {
-//					out += "<p class=" + clase + ">" + respuesta.getEnunciado() + "</p>" + "\n";
-//				}
-//				
-//			}
-//		
-//		}
-//		return out;
-//	}
 
 	public static String cajaRespuestas (String pregunta, ArrayList<Respuesta> respuestas, String [] respondidas){
 		ArrayList<String>out = new ArrayList<String>();
@@ -73,16 +45,15 @@ public class Genera {
 			}
 			
 			for (Respuesta respuesta : respuestas) { 
-				String clase = respuesta.isValida() ? "valida" : "NoValida";
+				String clase = respuesta.isValida() ? "valida" : "noValida";
 				if (respondidasLista.contains(respuesta.getId())) {
 					clase = "seleccionada" + clase;
 				}
 				out.add("<p class=" + clase + ">" + respuesta.getEnunciado() + "</p>" + "\n");
 			}
-			out.add(0, "<div class=preg&resp><div class='pregunta'><p>" + pregunta + "<p></div>");
+			out.add(0, "<div class=pregResp><div class='pregunta'><p>" + pregunta + "<p></div>");
 			out.add(out.size(), "</div>");
 		}
-		System.out.println(String.join("", out));
 		return String.join("", out);
 	}
 	

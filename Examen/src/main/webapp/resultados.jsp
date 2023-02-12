@@ -6,33 +6,39 @@
 <head>
 <meta charset="UTF-8">
 <title>Resultados de examen</title>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
+	<main id='container'>
 	<h1>Resumen de examen</h1>
 	<%
 		HttpSession mySession = request.getSession(false);
 
 		double notaExamen = (double) mySession.getAttribute("notaExamen");
+		
 	%>
+	<span>
+<%
+		String hash = (String) mySession.getAttribute("idExamen");
 
-	<h1>Has sacado un 
+		out.print("Tu id de examen: " + hash);
+%>	
+	</span>
+	<h2>Has sacado un 
 		<%
 			if(notaExamen < 0){
 				out.print(0);
-				out.print("<br>");
 		%>
-	</h1>
-	<% out.print("<p>" + "Nota real: " + Math.round(notaExamen * 100.0) / 100.0 + "</p>"); %>
+	</h2>
+	<% out.print("<p id='notaReal'>" + "Nota real: " + Math.round(notaExamen * 100.0) / 100.0 + "</p>"); %>
 	<h1>
 		<%
 			} else {
-				out.print(Math.round(notaExamen*100.0) / 100.0);				
-				out.print("<br>");					
+				out.print(Math.round(notaExamen*100.0) / 100.0);					
 			}
 		%>
 	</h1>
 	
-	<main id='container'>
 	<% 
 		out.print(Genera.cajaRespuestas((String) mySession.getAttribute("pregunta1"),(ArrayList<Respuesta>) mySession.getAttribute("respuestas1"), (String []) mySession.getAttribute("respondido1")));
 		out.print(Genera.cajaRespuestas((String) mySession.getAttribute("pregunta2"),(ArrayList<Respuesta>) mySession.getAttribute("respuestas2"), (String []) mySession.getAttribute("respondido2")));			
