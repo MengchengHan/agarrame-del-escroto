@@ -271,7 +271,7 @@ public class Core extends HttpServlet {
 					notaFinal = notaP1 + notaP2 + notaP3;
 					mySession.setAttribute("notaExamen", notaFinal);
 					
-					String hash = insertDB(respondidoGeneral);
+					String hash = insertDB(respondidoGeneral, notaFinal);
 					System.out.println(hash);
 					mySession.setAttribute("idExamen", hash);
 					linea("/resultados.jsp", request, response);
@@ -371,12 +371,13 @@ public class Core extends HttpServlet {
 		return 0;
 	}
 	
-	private String insertDB (ArrayList<String> respondido) throws SQLException, ClassNotFoundException{
+	private String insertDB (ArrayList<String> respondido, double nota) throws SQLException, ClassNotFoundException{
 		
 		String hash = Base64.getEncoder().encodeToString(Generador.Argon2Id.generateArgon2Id()) + 
 				new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new java.util.Date());;
 		
-		String insertSQL = "INSERT INTO examen VALUES (" + "'" + hash + "'" + ", " + "'" + idPreguntas + "'" + ", " + "'" +  respondido + "'" + ");";
+		String insertSQL = "INSERT INTO examen VALUES (" + "'" + hash + "'" + ", " + "'" 
+		+ idPreguntas + "'" + ", " + "'" +  respondido + "'" + ", " + nota + ");";
 		
 		System.out.println(insertSQL);
 		
